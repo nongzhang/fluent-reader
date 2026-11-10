@@ -33,11 +33,16 @@ The repo of the mobile version of this app [can be found here](https://github.co
 - Sync with RSS Services including Inoreader, Feedbin, The Old Reader, BazQux Reader, and more.
 - Importing or exporting OPML files, full application data backup & restoration.
 - Read the full content with the built-in article view or load webpages by default.
+- Translate card titles, snippets, and full articles with Google Translate.
+  Choose the target language from the toolbar or the article menu.
 - Search for articles with regular expressions or filter by read status.
 - Organize your subscriptions with folder-like groupings.
 - Single-key [keyboard shortcuts](https://github.com/yang991178/fluent-reader/wiki/Support#keyboard-shortcuts).
 - Hide, mark as read, or star articles automatically as they arrive with regular expression rules.
 - Fetch articles in the background and send push notifications.
+
+> Card and article translation uses Google Translate and requires network
+> access to `translate.googleapis.com`.
 
 Support for other RSS services are [under fundraising](https://github.com/yang991178/fluent-reader/issues/23). 
 
