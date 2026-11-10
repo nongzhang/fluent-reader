@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Card } from "./card"
 import CardInfo from "./info"
-import Highlights from "./highlights"
+import TranslatedHighlights from "./translated-highlights"
 import { ViewConfigs } from "../../schema-types"
 import { SourceTextDirection } from "../../scripts/models/source"
 
@@ -29,16 +29,18 @@ const ListCard: React.FunctionComponent<Card.Props> = props => (
         <div className="data">
             <CardInfo source={props.source} item={props.item} />
             <h3 className="title">
-                <Highlights
-                    text={props.item.title}
+                <TranslatedHighlights
+                    item={props.item}
+                    field="title"
                     filter={props.filter}
                     title
                 />
             </h3>
             {Boolean(props.viewConfigs & ViewConfigs.ShowSnippet) && (
                 <p className="snippet">
-                    <Highlights
-                        text={props.item.snippet}
+                    <TranslatedHighlights
+                        item={props.item}
+                        field="snippet"
                         filter={props.filter}
                     />
                 </p>

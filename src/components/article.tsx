@@ -1,7 +1,13 @@
 import * as React from "react"
 import intl from "react-intl-universal"
 import { renderToString } from "react-dom/server"
-import { useCallback, useEffect, useLayoutEffect, useState } from "react"
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react"
 import {
     markRead,
     markUnread,
@@ -35,6 +41,9 @@ import {
 } from "../scripts/models/app"
 import { useArticleView } from "./utils/hooks/useArticleView"
 import { makeStyles, mergeClasses, shorthands } from "@griffel/react"
+import { LANGUAGE_OPTIONS } from "../scripts/languages"
+import { resolveTranslationTarget } from "../scripts/translate"
+import { translateArticle } from "../scripts/article-translate"
 
 const useStyles = makeStyles({
     root: {
@@ -101,9 +110,30 @@ const useStyles = makeStyles({
     menuIcon: { display: "none" },
     errorIcon: { fontSize: "32px" },
     errorCode: { fontSize: "11px" },
+    translating: { alignSelf: "center" },
 })
 
 const FONT_SIZE_OPTIONS = [12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+// The guest renders the article asynchronously, so wait for its content.
+const EXTRACT_ARTICLE_SCRIPT = `new Promise(resolve => {
+    const started = Date.now()
+    const check = () => {
+        const article = document.querySelector("article")
+        if (article && article.innerHTML.trim()) resolve(article.innerHTML)
+        else if (Date.now() - started >= 15000) resolve("")
+        else setTimeout(check, 100)
+    }
+    check()
+})`
+
+type TranslatedArticle = {
+    itemId: number
+    full: boolean
+    target: string
+    title: string
+    content: string
+}
 
 type ArticleProps = Readonly<{
     itemId: number
@@ -136,6 +166,89 @@ function Article({ itemId, side = false }: ArticleProps) {
         toggleFull,
         reload,
     } = useArticleView(item, source.openTarget)
+
+    const [articleTranslateTarget, setArticleTranslateTarget] = useState("none")
+    const [translatedArticle, setTranslatedArticle] =
+        useState<TranslatedArticle>(null)
+    const [translating, setTranslating] = useState(false)
+    const translationSignature = useRef<string>(null)
+    const translationInFlight = useRef(false)
+    // Cache the untranslated rendering so switching languages never translates
+    // a previously translated page a second time.
+    const originalArticle = useRef<{ key: string; html: string }>(null)
+    const resolvedArticleTarget = resolveTranslationTarget(
+        articleTranslateTarget,
+        locale
+    )
+
+    useEffect(() => {
+        if (!resolvedArticleTarget || loadWebpage) {
+            setTranslating(false)
+            return
+        }
+        if (!loaded) return
+        const signature = `${item._id}|${
+            loadFull ? "full" : "local"
+        }|${resolvedArticleTarget}`
+        if (translationSignature.current === signature) {
+            setTranslating(false)
+            return
+        }
+        if (translationInFlight.current) return
+        const node = webview.current
+        if (!node) return
+
+        let cancelled = false
+        translationInFlight.current = true
+        setTranslating(true)
+        const run = async () => {
+            try {
+                const contentKey = `${item._id}|${loadFull ? "full" : "local"}`
+                let html =
+                    originalArticle.current?.key === contentKey
+                        ? originalArticle.current.html
+                        : null
+                if (!html) {
+                    html = await node.executeJavaScript(EXTRACT_ARTICLE_SCRIPT)
+                    if (cancelled || typeof html !== "string" || !html.trim())
+                        return
+                    originalArticle.current = { key: contentKey, html }
+                }
+                const translated = await translateArticle(
+                    html,
+                    item.title,
+                    resolvedArticleTarget
+                )
+                if (cancelled) return
+                translationSignature.current = signature
+                setTranslatedArticle({
+                    itemId: item._id,
+                    full: loadFull,
+                    target: resolvedArticleTarget,
+                    ...translated,
+                })
+            } catch (err) {
+                console.log("Article translation failed:", err)
+            } finally {
+                if (!cancelled) {
+                    translationInFlight.current = false
+                    setTranslating(false)
+                }
+            }
+        }
+        run()
+        return () => {
+            cancelled = true
+            translationInFlight.current = false
+        }
+    }, [
+        resolvedArticleTarget,
+        loaded,
+        loadFull,
+        loadWebpage,
+        item._id,
+        item.title,
+    ])
 
     const dismiss = () => dispatch(dismissItem())
     const handleNavigationKey = useCallback(
@@ -269,6 +382,46 @@ function Article({ itemId, side = false }: ArticleProps) {
         ],
     })
 
+    const changeArticleTranslateTarget = (target: string) => {
+        setArticleTranslateTarget(target)
+        if (target === "none") {
+            translationSignature.current = null
+            setTranslatedArticle(null)
+        }
+    }
+
+    const articleTranslateMenuProps = (): IContextualMenuProps => ({
+        items: [
+            {
+                key: "none",
+                text: intl.get("translate.original"),
+                iconProps: { iconName: "ClearFormatting" },
+                canCheck: true,
+                checked: articleTranslateTarget === "none",
+                onClick: () => changeArticleTranslateTarget("none"),
+            },
+            {
+                key: "default",
+                text: intl.get("translate.followApp"),
+                iconProps: { iconName: "LocaleLanguage" },
+                canCheck: true,
+                checked: articleTranslateTarget === "default",
+                onClick: () => changeArticleTranslateTarget("default"),
+            },
+            {
+                key: "divider",
+                itemType: ContextualMenuItemType.Divider,
+            },
+            ...LANGUAGE_OPTIONS.map(option => ({
+                key: option.value,
+                text: option.text,
+                canCheck: true,
+                checked: articleTranslateTarget === option.value,
+                onClick: () => changeArticleTranslateTarget(option.value),
+            })),
+        ],
+    })
+
     const moreMenuProps = (): IContextualMenuProps => ({
         items: [
             {
@@ -321,6 +474,13 @@ function Article({ itemId, side = false }: ArticleProps) {
                 subMenuProps: directionMenuProps(),
             },
             {
+                key: "translateMenu",
+                text: intl.get("translate.article"),
+                iconProps: { iconName: "LocaleLanguage" },
+                disabled: loadWebpage,
+                subMenuProps: articleTranslateMenuProps(),
+            },
+            {
                 key: "divider_1",
                 itemType: ContextualMenuItemType.Divider,
             },
@@ -328,12 +488,26 @@ function Article({ itemId, side = false }: ArticleProps) {
         ],
     })
 
+    const translationApplied =
+        translatedArticle !== null &&
+        translatedArticle.itemId === item._id &&
+        translatedArticle.full === loadFull &&
+        translatedArticle.target === resolvedArticleTarget
+    const articleContent = translationApplied
+        ? translatedArticle.content
+        : loadFull
+        ? fullContent
+        : item.content
+    const articleTitle = translationApplied
+        ? translatedArticle.title
+        : item.title
+
     const articleView = () => {
-        const a = encodeURIComponent(loadFull ? fullContent : item.content)
+        const a = encodeURIComponent(articleContent)
         const h = encodeURIComponent(
             renderToString(
                 <>
-                    <p className="title">{item.title}</p>
+                    <p className="title">{articleTitle}</p>
                     <p className="date">
                         {item.date.toLocaleString(locale, {
                             hour12: !locale.startsWith("zh"),
@@ -346,7 +520,7 @@ function Article({ itemId, side = false }: ArticleProps) {
         return `article/article.html?a=${a}&h=${h}&f=${encodeURIComponent(
             fontFamily
         )}&s=${fontSize}&d=${source.textDir}&u=${item.link}&m=${
-            loadFull ? 1 : 0
+            translationApplied ? 0 : loadFull ? 1 : 0
         }`
     }
 
@@ -466,6 +640,13 @@ function Article({ itemId, side = false }: ArticleProps) {
                         iconProps={{ iconName: "Globe" }}
                         onClick={toggleWebpage}
                     />
+                    {translating && (
+                        <span
+                            className={classes.translating}
+                            title={intl.get("translate.processing")}>
+                            <Spinner size="extra-tiny" />
+                        </span>
+                    )}
                     <CommandBarButton
                         title={intl.get("more")}
                         iconProps={{ iconName: "More" }}

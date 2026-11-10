@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Card } from "./card"
 import CardInfo from "./info"
-import Highlights from "./highlights"
+import TranslatedHighlights from "./translated-highlights"
 import { SourceTextDirection } from "../../scripts/models/source"
 
 const className = (props: Card.Props) => {
@@ -26,15 +26,17 @@ const MagazineCard: React.FunctionComponent<Card.Props> = props => (
         <div className="data">
             <div>
                 <h3 className="title">
-                    <Highlights
-                        text={props.item.title}
+                    <TranslatedHighlights
+                        item={props.item}
+                        field="title"
                         filter={props.filter}
                         title
                     />
                 </h3>
                 <p className="snippet">
-                    <Highlights
-                        text={props.item.snippet}
+                    <TranslatedHighlights
+                        item={props.item}
+                        field="snippet"
                         filter={props.filter}
                     />
                 </p>

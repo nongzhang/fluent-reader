@@ -1,6 +1,7 @@
 import { BrowserWindow, nativeTheme, app } from "electron"
 import * as path from "node:path"
 import { setThemeListener } from "./settings"
+import { setTranslateListeners } from "./translate"
 import { setUtilsListeners } from "./utils"
 
 export class WindowManager {
@@ -19,6 +20,7 @@ export class WindowManager {
 
     private setListeners = () => {
         setThemeListener(this)
+        setTranslateListeners()
         setUtilsListeners(this)
 
         app.on("second-instance", () => {

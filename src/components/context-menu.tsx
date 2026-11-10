@@ -16,8 +16,10 @@ import {
 import {
     closeContextMenu,
     ContextMenuType,
+    setTranslateTarget,
     toggleSettings,
 } from "../scripts/models/app"
+import { LANGUAGE_OPTIONS } from "../scripts/languages"
 import {
     fetchItems,
     markAllRead,
@@ -75,6 +77,8 @@ export function ContextMenu() {
             return <ImageContextMenu />
         case ContextMenuType.View:
             return <ViewContextMenu />
+        case ContextMenuType.Translate:
+            return <TranslateContextMenu />
         case ContextMenuType.Group:
             return <GroupContextMenu />
         case ContextMenuType.MarkRead:
@@ -503,6 +507,54 @@ function ViewContextMenu() {
             canCheck: true,
             checked: Boolean(filter & FilterType.ShowHidden),
             onClick: () => dispatch(toggleFilter(FilterType.ShowHidden)),
+        },
+    ]
+    return <ContextMenuBase menuItems={menuItems} />
+}
+
+function TranslateContextMenu() {
+    const dispatch = useAppDispatch()
+    const translateTarget = useAppSelector(state => state.app.translateTarget)
+
+    const menuItems: IContextualMenuItem[] = [
+        {
+            key: "translateDefaults",
+            itemType: ContextualMenuItemType.Section,
+            sectionProps: {
+                title: intl.get("translate.title"),
+                bottomDivider: true,
+                items: [
+                    {
+                        key: "default",
+                        text: intl.get("translate.followApp"),
+                        iconProps: { iconName: "LocaleLanguage" },
+                        canCheck: true,
+                        checked: translateTarget === "default",
+                        onClick: () => dispatch(setTranslateTarget("default")),
+                    },
+                    {
+                        key: "none",
+                        text: intl.get("translate.original"),
+                        iconProps: { iconName: "ClearFormatting" },
+                        canCheck: true,
+                        checked: translateTarget === "none",
+                        onClick: () => dispatch(setTranslateTarget("none")),
+                    },
+                ],
+            },
+        },
+        {
+            key: "translateLanguages",
+            itemType: ContextualMenuItemType.Section,
+            sectionProps: {
+                items: LANGUAGE_OPTIONS.map(option => ({
+                    key: option.value,
+                    text: option.text,
+                    canCheck: true,
+                    checked: translateTarget === option.value,
+                    onClick: () => dispatch(setTranslateTarget(option.value)),
+                })),
+            },
         },
     ]
     return <ContextMenuBase menuItems={menuItems} />

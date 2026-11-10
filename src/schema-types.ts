@@ -135,4 +135,5 @@ export type SchemaTypes = {
     menuUnreadSourcesOnly: boolean
     sourceRules: StoredRules
     dbVersion: string
+    translateTarget: string
 }

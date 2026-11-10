@@ -44,6 +44,7 @@ export const enum ContextMenuType {
     Group,
     Image,
     MarkRead,
+    Translate,
 }
 
 export const enum AppLogType {
@@ -76,6 +77,8 @@ export class AppLog {
 
 export class AppState {
     locale = null as string
+    translateTarget = window.settings.getTranslateTarget()
+    translations = {} as Record<string, string>
     sourceInit = false
     feedInit = false
     syncing = false
@@ -116,6 +119,7 @@ export const CLOSE_CONTEXT_MENU = "CLOSE_CONTEXT_MENU"
 export const OPEN_ITEM_MENU = "OPEN_ITEM_MENU"
 export const OPEN_TEXT_MENU = "OPEN_TEXT_MENU"
 export const OPEN_VIEW_MENU = "OPEN_VIEW_MENU"
+export const OPEN_TRANSLATE_MENU = "OPEN_TRANSLATE_MENU"
 export const OPEN_GROUP_MENU = "OPEN_GROUP_MENU"
 export const OPEN_IMAGE_MENU = "OPEN_IMAGE_MENU"
 export const OPEN_MARK_ALL_MENU = "OPEN_MARK_ALL_MENU"
@@ -141,6 +145,10 @@ interface OpenViewMenuAction {
     type: typeof OPEN_VIEW_MENU
 }
 
+interface OpenTranslateMenuAction {
+    type: typeof OPEN_TRANSLATE_MENU
+}
+
 interface OpenMarkAllMenuAction {
     type: typeof OPEN_MARK_ALL_MENU
 }
@@ -161,6 +169,7 @@ export type ContextMenuActionTypes =
     | OpenItemMenuAction
     | OpenTextMenuAction
     | OpenViewMenuAction
+    | OpenTranslateMenuAction
     | OpenGroupMenuAction
     | OpenImageMenuAction
     | OpenMarkAllMenuAction
@@ -180,6 +189,30 @@ interface PushNotificationAction {
 }
 
 export type LogMenuActionType = ToggleLogMenuAction | PushNotificationAction
+
+export const SET_TRANSLATE_TARGET = "SET_TRANSLATE_TARGET"
+export const TRANSLATIONS_RECEIVED = "TRANSLATIONS_RECEIVED"
+
+interface SetTranslateTargetAction {
+    type: typeof SET_TRANSLATE_TARGET
+    target: string
+}
+
+export interface TranslationsReceivedAction {
+    type: typeof TRANSLATIONS_RECEIVED
+    translations: Record<string, string>
+}
+
+export type TranslationActionTypes =
+    | SetTranslateTargetAction
+    | TranslationsReceivedAction
+
+export function setTranslateTarget(target: string): AppThunk {
+    return dispatch => {
+        window.settings.setTranslateTarget(target)
+        dispatch({ type: SET_TRANSLATE_TARGET, target })
+    }
+}
 
 export const TOGGLE_MENU = "TOGGLE_MENU"
 
@@ -243,6 +276,10 @@ export function openTextMenu(
 
 export const openViewMenu = (): ContextMenuActionTypes => ({
     type: OPEN_VIEW_MENU,
+})
+
+export const openTranslateMenu = (): ContextMenuActionTypes => ({
+    type: OPEN_TRANSLATE_MENU,
 })
 
 export function openGroupMenu(
@@ -429,6 +466,7 @@ export function appReducer(
         | InitIntlAction
         | MenuActionTypes
         | LogMenuActionType
+        | TranslationActionTypes
         | FeedActionTypes
         | PageActionTypes
         | SourceGroupActionTypes
@@ -635,6 +673,17 @@ export function appReducer(
                     event: "#view-toggle",
                 },
             }
+        case OPEN_TRANSLATE_MENU:
+            return {
+                ...state,
+                contextMenu: {
+                    type:
+                        state.contextMenu.type === ContextMenuType.Translate
+                            ? ContextMenuType.Hidden
+                            : ContextMenuType.Translate,
+                    event: "#translate-toggle",
+                },
+            }
         case OPEN_GROUP_MENU:
             return {
                 ...state,
@@ -667,6 +716,19 @@ export function appReducer(
             return {
                 ...state,
                 menu: !state.menu,
+            }
+        case SET_TRANSLATE_TARGET:
+            return {
+                ...state,
+                translateTarget: action.target,
+            }
+        case TRANSLATIONS_RECEIVED:
+            return {
+                ...state,
+                translations: {
+                    ...state.translations,
+                    ...action.translations,
+                },
             }
         case SAVE_SETTINGS:
             return {

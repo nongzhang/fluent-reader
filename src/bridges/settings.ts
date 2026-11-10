@@ -159,6 +159,13 @@ const settingsBridge = {
         return ipcRenderer.invoke("set-db-version", version)
     },
 
+    getTranslateTarget: (): string => {
+        return ipcRenderer.sendSync("get-translate-target")
+    },
+    setTranslateTarget: (target: string) => {
+        ipcRenderer.invoke("set-translate-target", target)
+    },
+
     getUnreadSourcesOnly: (): boolean => {
         return ipcRenderer.sendSync("get-unread-sources-only")
     },

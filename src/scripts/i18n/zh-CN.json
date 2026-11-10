@@ -42,9 +42,17 @@
         "markAllRead": "全部标为已读",
         "notifications": "消息",
         "view": "视图",
+        "translate": "翻译",
         "settings": "选项",
         "minimize": "最小化",
         "maximize": "最大化"
+    },
+    "translate": {
+        "title": "卡片翻译为",
+        "article": "文章翻译为",
+        "followApp": "跟随软件语言",
+        "original": "显示原文",
+        "processing": "正在翻译…"
     },
     "menu": {
         "close": "关闭菜单",

@@ -15,6 +15,7 @@ import {
     toggleLogMenu,
     toggleSettings,
     openViewMenu,
+    openTranslateMenu,
     openMarkAllMenu,
 } from "../scripts/models/app"
 import { toggleSearch } from "../scripts/models/page"
@@ -146,6 +147,11 @@ const Nav: React.FC = () => {
             dispatch(openViewMenu())
         }
     }, [state.contextMenu.event, dispatch])
+    const translate = useCallback(() => {
+        if (state.contextMenu.event !== "#translate-toggle") {
+            dispatch(openTranslateMenu())
+        }
+    }, [state.contextMenu.event, dispatch])
 
     const navShortcutsHandler = useCallback(
         (e: KeyboardEvent | IObjectWithKey) => {
@@ -269,6 +275,20 @@ const Nav: React.FC = () => {
                 <FlatButtonGroup styleClass={classes.navGroupRight}>
                     {isNonNavButtonShown && (
                         <>
+                            <FlatButton
+                                styleClass={classes.navBtn}
+                                id="translate-toggle"
+                                title={intl.get("nav.translate")}
+                                onClick={translate}
+                                onMouseDown={e => {
+                                    if (
+                                        state.contextMenu.event ===
+                                        "#translate-toggle"
+                                    )
+                                        e.stopPropagation()
+                                }}>
+                                <Icon iconName="LocaleLanguage" />
+                            </FlatButton>
                             <FlatButton
                                 styleClass={classes.navBtn}
                                 fetching={isFetching}

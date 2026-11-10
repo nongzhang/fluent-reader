@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Card } from "./card"
 import CardInfo from "./info"
-import Highlights from "./highlights"
+import TranslatedHighlights from "./translated-highlights"
 import { SourceTextDirection } from "../../scripts/models/source"
 
 const className = (props: Card.Props) => {
@@ -27,10 +27,19 @@ const DefaultCard: React.FunctionComponent<Card.Props> = props => (
         ) : null}
         <CardInfo source={props.source} item={props.item} />
         <h3 className="title">
-            <Highlights text={props.item.title} filter={props.filter} title />
+            <TranslatedHighlights
+                item={props.item}
+                field="title"
+                filter={props.filter}
+                title
+            />
         </h3>
         <p className={"snippet" + (props.item.thumb ? "" : " show")}>
-            <Highlights text={props.item.snippet} filter={props.filter} />
+            <TranslatedHighlights
+                item={props.item}
+                field="snippet"
+                filter={props.filter}
+            />
         </p>
     </div>
 )

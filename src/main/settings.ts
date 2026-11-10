@@ -291,6 +291,14 @@ ipcMain.handle("set-db-version", (_, version: string) => {
     store.set(DB_VERSION_STORE_KEY as keyof SchemaTypes, version)
 })
 
+const TRANSLATE_TARGET_STORE_KEY = "translateTarget"
+ipcMain.on("get-translate-target", event => {
+    event.returnValue = store.get(TRANSLATE_TARGET_STORE_KEY, "default")
+})
+ipcMain.handle("set-translate-target", (_, target: string) => {
+    store.set(TRANSLATE_TARGET_STORE_KEY, target)
+})
+
 const UNREAD_SOURCES_ONLY_STORE_KEY = "menuUnreadSourcesOnly"
 ipcMain.on("get-unread-sources-only", event => {
     event.returnValue = store.get(UNREAD_SOURCES_ONLY_STORE_KEY, false)
