@@ -1,4 +1,8 @@
 <p align="center">
+  <strong>English</strong> | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
+<p align="center">
   <img width="120" height="120" src="https://github.com/yang991178/fluent-reader/raw/master/build/icon.png">
 </p>
 <h3 align="center">Fluent Reader</h3>
