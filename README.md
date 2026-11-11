@@ -29,7 +29,8 @@ The repo of the mobile version of this app [can be found here](https://github.co
 ## Features
 
 <p align="center">
-  <img src="https://github.com/yang991178/fluent-reader/raw/master/docs/imgs/screenshot.jpg">
+  <img src="https://github.com/yang991178/fluent-reader/raw/master/docs/imgs/Main.png">
+  <img src="https://github.com/yang991178/fluent-reader/raw/master/docs/imgs/newspaper.png">
 </p>
 
 - A modern UI inspired by Fluent Design System with full dark mode support.
