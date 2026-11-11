@@ -29,8 +29,10 @@ The repo of the mobile version of this app [can be found here](https://github.co
 ## Features
 
 <p align="center">
-  <img src="https://github.com/nongzhang/fluent-reader/tree/readme-i18n/docs/imgs/Main.png">
-  <img src="https://github.com/nongzhang/fluent-reader/tree/readme-i18n/docs/imgs/newspaper.png">
+  <img src="docs/imgs/Main.png" width="100%">
+</p>
+<p align="center">
+  <img src="docs/imgs/newspaper.png" width="100%">
 </p>
 
 - A modern UI inspired by Fluent Design System with full dark mode support.

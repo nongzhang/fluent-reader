@@ -29,7 +29,10 @@ macOS 用户也可以从 [Mac App Store](https://apps.apple.com/app/id6761698838
 ## 功能
 
 <p align="center">
-  <img src="https://github.com/yang991178/fluent-reader/raw/master/docs/imgs/screenshot.jpg">
+  <img src="docs/imgs/Main.png" width="100%">
+</p>
+<p align="center">
+  <img src="docs/imgs/newspaper.png" width="100%">
 </p>
 
 - 受 Fluent Design System 启发的现代界面，完整支持深色模式。
